@@ -33,13 +33,7 @@ public class BlogController {
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
-        // 获取登录用户
-        UserDTO user = UserHolder.getUser();
-        blog.setUserId(user.getId());
-        // 保存探店博文
-        blogService.save(blog);
-        // 返回id
-        return Result.ok(blog.getId());
+        return blogService.saveBlog(blog);
     }
 
     @PutMapping("/like/{id}")
@@ -59,6 +53,19 @@ public class BlogController {
         return Result.ok(records);
     }
 
+    // 根据用户id查博主笔记
+    @GetMapping("/of/user")
+    public Result queryBlogByUserId(
+            @RequestParam(value = "current", defaultValue = "1") Integer current,
+            @RequestParam("id") Long id) {
+        // 根据用户查询
+        Page<Blog> page = blogService.query()
+                .eq("user_id", id).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        // 获取当前页数据
+        List<Blog> records = page.getRecords();
+        return Result.ok(records);
+    }
+
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         return blogService.queryHotBlog(current);
@@ -72,5 +79,12 @@ public class BlogController {
     @GetMapping("/likes/{id}")
     public Result likesBlogRank(@PathVariable("id") Long id) {
         return blogService.likesBlogRank(id);
+    }
+
+    @GetMapping("/of/follow")
+    public Result queryBlogByFollow(
+            @RequestParam("lastId") Long lastId,
+            @RequestParam(value = "offset", defaultValue = "0") Integer offset) {
+        return blogService.queryBlogByFollow(lastId, offset);
     }
 }
